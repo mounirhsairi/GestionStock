@@ -21,9 +21,9 @@ import io.swagger.annotations.ApiResponses;
 @Api(Constants.APP_ROOT+"/facturesclients")
 
 public interface FactureClientApi {
-	   @PostMapping(value = Constants.APP_ROOT + "/facturesclients/Create")
+	   @PostMapping(value = Constants.APP_ROOT + "/facturesclients/Create/{id}")
 	   @ApiOperation(value="enregistrer une facture client",notes="cette methode permet d'enregistrer ou modifier une facture client", response=FactureClientDto.class)
-        public FactureClientDto createFactureClient(@RequestBody FactureClientDto factureClientDto) ;
+        public FactureClientDto createFactureClient(@PathVariable("id") Integer id) ;
 		@GetMapping(value = Constants.APP_ROOT + "/facturesclients/all",produces = "application/json")
 		@ApiOperation(value="affiche la liste des factures clients",notes="cette methode permet d'afficher la liste des factures clients", response=FactureClientDto.class)
 	    public List<FactureClientDto> getAllFactureClients() ;
@@ -40,9 +40,9 @@ public interface FactureClientApi {
 		@DeleteMapping(value = Constants.APP_ROOT + "/facturesclients/delete/{id}")
 		@ApiOperation(value="supprimer un article ",notes="cette methode permet de supprimer un article ", response=FactureClientDto.class)
 		public void deleteFactureClient(@PathVariable Integer id) ;
-	    @GetMapping(value=Constants.APP_ROOT +"/{id}/montant")
-	    public double calculateMontantFactureClient(@PathVariable Integer id) ;
-	    @GetMapping(value = Constants.APP_ROOT +"/factureclients/{id}/articles")
-	    public List<ArticleDetails> getArticlesAndPrixQuantite(@PathVariable Integer id);
+	    @GetMapping(value=Constants.APP_ROOT +"/{idFacture}/montant")
+	    public double calculateMontantFactureClient(@PathVariable("idFacture") Integer idFacture) ;
+	    @GetMapping(value = Constants.APP_ROOT +"/factureclients/{idFacture}/articles")
+	    public List<ArticleDetails> getArticlesAndPrixQuantite(@PathVariable("idFacture") Integer idFacture);
 
 }

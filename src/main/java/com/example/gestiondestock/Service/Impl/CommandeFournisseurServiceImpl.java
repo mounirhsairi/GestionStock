@@ -18,6 +18,7 @@ import com.example.gestiondestock.DTO.ArticleDto;
 import com.example.gestiondestock.DTO.CommandeFournisseurDto;
 import com.example.gestiondestock.DTO.FournisseurDto;
 import com.example.gestiondestock.DTO.LigneCommandeFournisseurDto;
+import com.example.gestiondestock.DTO.LigneCommandeFournisseurDto;
 import com.example.gestiondestock.DTO.MvnStockDto;
 import com.example.gestiondestock.Service.CommandeFournisseurService;
 import com.example.gestiondestock.Service.MvStkService;
@@ -29,6 +30,8 @@ import com.example.gestiondestock.model.Article;
 import com.example.gestiondestock.model.CommandeFournisseur;
 import com.example.gestiondestock.model.EtatCommande;
 import com.example.gestiondestock.model.Fournisseur;
+import com.example.gestiondestock.model.LigneCommandeFournisseur;
+import com.example.gestiondestock.model.LigneVente;
 import com.example.gestiondestock.model.LigneCommandeFournisseur;
 import com.example.gestiondestock.model.SourceMvtStock;
 import com.example.gestiondestock.model.TypeMvtStock;
@@ -79,7 +82,7 @@ public class CommandeFournisseurServiceImpl implements CommandeFournisseurServic
 
         List<String> articleErrors = new ArrayList<>();
         if (dto.getLigneCommandefournisseur() != null) {
-            dto.getLigneCommandefournisseur().forEach(ligCmdFr -> {
+            for (LigneCommandeFournisseurDto ligCmdFr : dto.getLigneCommandefournisseur()) {
                 if (ligCmdFr.getArticle() != null) {
                     Optional<Article> article = articleRepository.findById(ligCmdFr.getArticle().getId());
                     if (article.isEmpty()) {
@@ -88,24 +91,38 @@ public class CommandeFournisseurServiceImpl implements CommandeFournisseurServic
                 } else {
                     articleErrors.add("Impossible d'enregistrer les commandes avec un article null");
                 }
-            });
+            }
         }
 
         if (!articleErrors.isEmpty()) {
             log.warn("Articles not found in the database");
             throw new InvalidEntityException("Les articles n'existent pas dans la BDD", ErrorCodes.ARTICLE_NOT_FOUND);
         }
-        Fournisseur fournisseurr =fournisseur.get();
+        
+        Fournisseur fournisseurr = fournisseur.get();
         dto.setFournisseur(FournisseurDto.fromEntity(fournisseurr));
 
         CommandeFournisseur savedCmdFr = commandeFournisseurRepository.save(CommandeFournisseurDto.toEntity(dto));
-
+        
         if (dto.getLigneCommandefournisseur() != null) {
-            dto.getLigneCommandefournisseur().forEach(ligCmdFr -> {
+            for (LigneCommandeFournisseurDto ligCmdFr : dto.getLigneCommandefournisseur()) {
                 LigneCommandeFournisseur ligneCommandeFournisseur = LigneCommandeFournisseurDto.toEntity(ligCmdFr);
                 ligneCommandeFournisseur.setCommandeFournisseur(savedCmdFr);
                 ligneCommandeFournisseurRepository.save(ligneCommandeFournisseur);
-            });
+
+                if (dto.isCommandeLivree()) {
+                    Optional<Article> article = articleRepository.findById(ligCmdFr.getArticle().getId());
+                    if (article.isPresent()) {
+                        BigDecimal quantiteCommandee = ligCmdFr.getQuantite();
+                        BigDecimal quantiteDisponible = article.get().getQuantite();
+                        article.get().setQuantite(quantiteDisponible.add(quantiteCommandee));
+                        articleRepository.save(article.get());
+                    }
+                    updateMvtStk(ligneCommandeFournisseur);
+                }
+            }
+
+            
         }
 
         return CommandeFournisseurDto.fromEntity(savedCmdFr);
@@ -316,10 +333,22 @@ public class CommandeFournisseurServiceImpl implements CommandeFournisseurServic
 					.idEntreprise(lig.getIdEntreprise())
 					.build();
 			
-			mvtStkService.sortieStock(mvtStkDto);
+			mvtStkService.entrerStock(mvtStkDto);
 		});
 		
 	}
+	 private void updateMvtStk(LigneCommandeFournisseur lig) {
+			
+			MvnStockDto mvtStkDto = MvnStockDto.builder()
+					.article(ArticleDto.fromEntity(lig.getArticle()))
+					.dateMvt(Instant.now())
+					.typeMvt(TypeMvtStock.ENTREE)
+					.sourceMvt(SourceMvtStock.COMMANDE_FOURNISSEUR)
+					.quantite(lig.getQuantite())
+					.idEntreprise(lig.getIdEntreprise())
+					.build();
+			mvtStkService.entrerStock(mvtStkDto);
+		}
 
 	@Override
 	public List<LigneCommandeFournisseurDto> findAllLignesCommandesFournisseurByCommandeFournisseurId(
@@ -349,9 +378,22 @@ public class CommandeFournisseurServiceImpl implements CommandeFournisseurServic
         }
     	commandeFournisseur.setEtatCommande(etatCommande);
     	CommandeFournisseur savedCmdClt =commandeFournisseurRepository.save(CommandeFournisseurDto.toEntity(commandeFournisseur));
-    	if(commandeFournisseur.isCommandeLivree())
-    	{
-        	updateMvtStk(idCommande);
+    	
+    		if(commandeFournisseur.isCommandeLivree())
+        	{
+            	List<LigneCommandeFournisseurDto>lignesCommandeFournisseur =ligneCommandeFournisseurRepository.findAllByCommandeFournisseurId(idCommande).stream().map(LigneCommandeFournisseurDto::fromEntity).collect(Collectors.toList());
+            	for(LigneCommandeFournisseurDto lgcmdFr :lignesCommandeFournisseur) {
+                    Optional<Article> article = articleRepository.findById(lgcmdFr.getArticle().getId());
+                    if (article.isPresent()) {
+                        BigDecimal quantiteCommandee = lgcmdFr.getQuantite();
+                        BigDecimal quantiteDisponible = article.get().getQuantite();
+                        article.get().setQuantite(quantiteDisponible.add(quantiteCommandee));
+                        articleRepository.save(article.get());
+
+                    }
+            	}
+            	updateMvtStk(idCommande);
+        	
     	}
     	return CommandeFournisseurDto.fromEntity(savedCmdClt);
 	}

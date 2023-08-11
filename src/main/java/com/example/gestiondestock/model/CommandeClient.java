@@ -38,7 +38,8 @@ public class CommandeClient extends AbstractEntity {
 	private List<LigneCommandeClient> lignecommandeclient ;
 	@OneToMany(mappedBy = "commandeClient")
     private List<FactureClient> factureClient;
-	
+	@OneToMany(mappedBy = "commandeClient")
+    private List<LigneVente> ligneVente;
 
 	
 }

@@ -9,7 +9,7 @@ import com.example.gestiondestock.model.FactureClient;
 public interface FactureClientService {
 	     List<FactureClientDto> getAllFactureClients() ;
 	     FactureClientDto getFactureClientById(Integer id) ;
-	     FactureClientDto createFactureClient(FactureClientDto factureClient) ;
+	     FactureClientDto createFactureClient(Integer idCommande) ;
 	     FactureClientDto updateFactureClient(Integer id, FactureClientDto factureClient) ;
 	     void delete(Integer id) ;
 	     double calculateMontantFactureClient(Integer id) ;

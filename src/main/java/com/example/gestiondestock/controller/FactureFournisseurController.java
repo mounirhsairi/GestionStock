@@ -21,9 +21,9 @@ public class FactureFournisseurController implements FactureFournisseurApi {
 	}
 
 	@Override
-	public FactureFournisseurDto createFactureFournisseur(FactureFournisseurDto factureFournisseurDto) {
+	public FactureFournisseurDto createFactureFournisseur(Integer id) {
 		// TODO Auto-generated method stub
-		return factureFournisseurService.createFactureFournisseur(factureFournisseurDto);
+		return factureFournisseurService.createFactureFournisseur(id);
 	}
 
 	@Override

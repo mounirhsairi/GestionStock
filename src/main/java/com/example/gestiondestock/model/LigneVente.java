@@ -1,7 +1,7 @@
 package com.example.gestiondestock.model;
 
 import java.math.BigDecimal;
-
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,6 +27,9 @@ public class LigneVente extends AbstractEntity {
 	@JoinColumn(name="idVente")
 	private Ventes vente ;
 	@ManyToOne
+    @JoinColumn(name = "idCommandeClient")
+    private CommandeClient commandeClient;
+	@ManyToOne
 	@JoinColumn(name="idArticle")
 	private Article article ;
 	@Column (name = "quantite")
@@ -34,5 +37,5 @@ public class LigneVente extends AbstractEntity {
 	@Column (name = "prixUnitaire")
 	private BigDecimal prixUnitaire ;
 	
-	
+
 }

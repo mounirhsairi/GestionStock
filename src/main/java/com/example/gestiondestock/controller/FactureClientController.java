@@ -23,9 +23,9 @@ public class FactureClientController implements FactureClientApi {
 	}
 
 	@Override
-	public FactureClientDto createFactureClient(FactureClientDto factureClientDto) {
+	public FactureClientDto createFactureClient(Integer idCommande) {
 		// TODO Auto-generated method stub
-		return factureClientService.createFactureClient(factureClientDto);
+		return factureClientService.createFactureClient(idCommande);
 	}
 
 	@Override

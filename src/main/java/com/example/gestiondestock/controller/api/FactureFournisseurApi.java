@@ -21,9 +21,9 @@ import io.swagger.annotations.ApiResponses;
 @Api(Constants.APP_ROOT+"/facturesfournisseurs")
 
 public interface FactureFournisseurApi {
-	   @PostMapping(value = Constants.APP_ROOT + "/facturesfournisseurs/Create")
+	   @PostMapping(value = Constants.APP_ROOT + "/facturesfournisseurs/Create/{id}")
 	   @ApiOperation(value="enregistrer une facture fournisseur",notes="cette methode permet d'enregistrer ou modifier une facture fournisseur", response=FactureFournisseurDto.class)
-        public FactureFournisseurDto createFactureFournisseur(@RequestBody FactureFournisseurDto factureFournisseurDto) ;
+        public FactureFournisseurDto createFactureFournisseur(@PathVariable("id") Integer id) ;
 		@GetMapping(value = Constants.APP_ROOT + "/facturesfournisseurs/all",produces = "application/json")
 		@ApiOperation(value="affiche la liste des factures fournisseurs",notes="cette methode permet d'afficher la liste des factures fournisseurs", response=FactureFournisseurDto.class)
 	    public List<FactureFournisseurDto> getAllFactureFournisseurs() ;

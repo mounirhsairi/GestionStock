@@ -1,7 +1,7 @@
 package com.example.gestiondestock.Service.Impl;
 
 import java.math.BigDecimal;
-
+import java.time.Instant;
 import java.util.ArrayList;
 
 
@@ -22,6 +22,7 @@ import com.example.gestiondestock.Service.FactureClientService;
 import com.example.gestiondestock.exception.EntityNotFoundException;
 import com.example.gestiondestock.exception.ErrorCodes;
 import com.example.gestiondestock.model.ArticleDetails;
+import com.example.gestiondestock.model.CommandeClient;
 import com.example.gestiondestock.model.FactureClient;
 import com.example.gestiondestock.model.LigneCommandeClient;
 import com.example.gestiondestock.repository.FactureClientRepository;
@@ -61,10 +62,24 @@ public class FactureClientServiceImpl implements FactureClientService {
                         ErrorCodes.FACTURE_CLIENT_NOT_FOUND));
 	}
 	@Override
-	public FactureClientDto createFactureClient(FactureClientDto factureClient) {
+	public FactureClientDto createFactureClient(Integer idCommandeClient) {
+	    // Retrieve the CommandeClient entity based on the given idCommandeClient
+		 CommandeClientDto commandeClientdto = commandeClientService.findById(idCommandeClient);
+		            
+		 if(commandeClientdto==null) {
+			 throw new EntityNotFoundException("CommandeClient with id " + idCommandeClient + " not found");
+		 }
+	    // Create a new FactureClientDto
+	    FactureClient factureClient= new FactureClient();
+	    factureClient.setCommandeClient(CommandeClientDto.toEntity(commandeClientdto)); // Assuming you have a converter method to convert CommandeClient to CommandeClientDto
+	    factureClient.setDateFacture(Instant.now()); // Set the date to the current timestamp
+	    factureClient.setCode("FACT-" + Instant.now().toEpochMilli()); // Generate a unique code for the facture
 
-	   
-          return 	FactureClientDto.fromEntity(factureClientRepository.save(FactureClientDto.toEntity(factureClient)))    ;
+	    // Save the FactureClientDto entity
+	    FactureClient factureClientEntity = factureClientRepository.save(factureClient);
+
+	    // Convert the saved entity back to DTO and return
+	    return FactureClientDto.fromEntity(factureClientEntity);
 	}
 
 	
